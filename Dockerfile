@@ -38,6 +38,9 @@ COPY --from=vendor --chown=www-data:www-data /app/application/vendor /var/www/ht
 RUN rm -rf docker .git .github tests \
  && printf '<Directory /var/www/html/install>\n  <FilesMatch "^(settings\\.json|instalador\\.php|.*\\.lock)$">\n    Require all denied\n  </FilesMatch>\n</Directory>\n<Directory /var/www/html/install/view>\n  Require all denied\n</Directory>\n<DirectoryMatch "^/var/www/html/assets/(anexos|arquivos)">\n  <FilesMatch "\\.(php[0-9]*|phtml|phar|pht|phps)$">\n    Require all denied\n  </FilesMatch>\n</DirectoryMatch>\n' > /etc/apache2/conf-enabled/mapos.conf
 
+# Atrás do proxy do Easypanel (Traefik) o HTTPS termina no proxy: avisa o PHP
+RUN echo 'SetEnvIf X-Forwarded-Proto "^https$" HTTPS=on' > /etc/apache2/conf-enabled/proxy-https.conf
+
 # Cron do envio de e-mails (roda como www-data)
 RUN printf '*/2 * * * * /usr/local/bin/php /var/www/html/index.php email/process >/dev/null 2>&1\n*/5 * * * * /usr/local/bin/php /var/www/html/index.php email/retry >/dev/null 2>&1\n' | crontab -u www-data -
 
