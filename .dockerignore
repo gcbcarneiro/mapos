@@ -1,0 +1,7 @@
+.git
+.github
+docker/data
+node_modules
+application/vendor
+application/.env
+tests
