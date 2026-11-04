@@ -31,6 +31,25 @@ fi
 
 chown -R www-data:www-data "$DATA" "$APP/application" "$APP/updates" 2>/dev/null || true
 
+# ---- Publicação em subcaminho (ex.: os.sisistemas.com.br/conser) ----
+# Defina a variável de ambiente MAPOS_PATH=/conser no app do Easypanel.
+if [ -n "$MAPOS_PATH" ]; then
+  P="/$(echo "$MAPOS_PATH" | sed 's#^/*##; s#/*$##')"     # normaliza para /conser
+  NOME=$(echo "$P" | tr -cd 'A-Za-z0-9' | tr 'a-z' 'A-Z')  # CONSER
+  cat > /etc/apache2/conf-enabled/mapos-path.conf <<CONF
+Alias $P /var/www/html
+RedirectMatch 302 ^$P\$ $P/
+CONF
+  # Cookies isolados por cliente (mesmo domínio para todos)
+  if [ -f "$DATA/.env" ]; then
+    sed -i "s#^APP_COOKIE_PATH=.*#APP_COOKIE_PATH=$P/#" "$DATA/.env"
+    sed -i "s#^APP_SESS_COOKIE_NAME=.*#APP_SESS_COOKIE_NAME=MAPOS_SESSION_$NOME#" "$DATA/.env"
+    sed -i "s#^APP_CSRF_COOKIE_NAME=.*#APP_CSRF_COOKIE_NAME=\"MAPOS_CSRF_COOKIE_$NOME\"#" "$DATA/.env"
+  fi
+else
+  rm -f /etc/apache2/conf-enabled/mapos-path.conf
+fi
+
 # cron em segundo plano (e-mails)
 cron
 
