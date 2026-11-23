@@ -32,6 +32,16 @@ defined('BASEPATH') or exit('No direct script access allowed');
 */
 
 $config['permissions_map'] = [
+    // Agendamentos de visita (fork Conser): agendar cria uma OS, então
+    // adicionar e editar exigem também a permissão da OS.
+    'Agendamentos' => [
+        'index' => 'vAgendamento',
+        'gerenciar' => 'vAgendamento',
+        'adicionar' => ['todas' => ['aAgendamento', 'aOs']],
+        'editar' => ['todas' => ['eAgendamento', 'eOs']],
+        'excluir' => 'dAgendamento',
+    ],
+
     'Arquivos' => [
         'index' => 'vArquivo',
         'gerenciar' => 'vArquivo',

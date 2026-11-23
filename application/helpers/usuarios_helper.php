@@ -30,6 +30,7 @@ if (! defined('PERMISSOES_MODULOS')) {
         'Produto' => 'Produtos',
         'Servico' => 'Serviços',
         'Os' => 'Ordens de serviço',
+        'Agendamento' => 'Agendamentos',
         'Venda' => 'Vendas',
         'Garantia' => 'Termos de garantia',
         'Arquivo' => 'Arquivos',
