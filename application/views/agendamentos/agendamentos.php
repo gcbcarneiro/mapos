@@ -78,7 +78,7 @@ $vazio = $temFiltro
     : component('empty-state', [
         'title' => 'Nenhum agendamento pela frente',
         'message' => 'As próximas visitas agendadas aparecem aqui. Para ver as antigas, escolha o período "Todos".',
-        'icon' => 'calendar-clock',
+        'icon' => 'clock',
         'action' => $pode['adicionar'] ? component('button', ['label' => 'Agendar visita', 'icon' => 'plus', 'variant' => 'outline', 'href' => site_url('agendamentos/adicionar')]) : null,
         'class' => 'border-0',
     ]);

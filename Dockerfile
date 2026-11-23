@@ -41,6 +41,11 @@ RUN rm -rf docker .git .github tests \
 # Atrás do proxy do Easypanel (Traefik) o HTTPS termina no proxy: avisa o PHP
 RUN echo 'SetEnvIf X-Forwarded-Proto "^https$" HTTPS=on' > /etc/apache2/conf-enabled/proxy-https.conf
 
+# Ícones, CSS e JS: o navegador confere se mudou a cada acesso (resposta 304
+# quando não mudou). Sem isso, depois de um deploy o navegador seguia usando o
+# sprite de ícones antigo e o menu novo ficava sem ícone.
+RUN printf '<Directory /var/www/html/assets>\n  <FilesMatch "\\.(svg|css|js|json)$">\n    Header set Cache-Control "no-cache"\n  </FilesMatch>\n</Directory>\n' > /etc/apache2/conf-enabled/mapos-cache.conf
+
 # Cron do envio de e-mails (roda como www-data)
 RUN printf '*/2 * * * * /usr/local/bin/php /var/www/html/index.php email/process >/dev/null 2>&1\n*/5 * * * * /usr/local/bin/php /var/www/html/index.php email/retry >/dev/null 2>&1\n' | crontab -u www-data -
 

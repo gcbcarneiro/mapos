@@ -5,3 +5,6 @@ node_modules
 application/vendor
 application/.env
 tests
+# Branch conser: o sistema já está instalado (o .env fica no volume /data),
+# então o instalador não vai para a imagem.
+install
