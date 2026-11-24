@@ -551,6 +551,14 @@ class Os extends MY_Controller
         
         $this->data['imprimirAnexo'] = isset($_ENV['IMPRIMIR_ANEXOS']) ? (filter_var($_ENV['IMPRIMIR_ANEXOS'] ?? false, FILTER_VALIDATE_BOOLEAN)) : false;
 
+        // Fork Conser: quadro "Dados para o motorista" abaixo das assinaturas.
+        if ($this->data['result']) {
+            $this->load->helper('agendamentos');
+            $this->load->model('agendamentos_model');
+            $this->data['motorista'] = osResumoMotorista($this->data['result'], $this->agendamentos_model->horaDaOs((int) $this->data['result']->idOs));
+            $this->data['motoristaQr'] = osQrCodeDoMapa($this->data['motorista']['mapa']);
+        }
+
         $this->load->view('os/imprimirOs', $this->data);
     }
 

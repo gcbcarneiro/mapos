@@ -107,6 +107,18 @@ class Agendamentos_model extends CI_Model
         return $linha ?: null;
     }
 
+    /** Hora do agendamento que criou a OS (para a impressão); null sem agendamento ou sem hora. */
+    public function horaDaOs(int $idOs): ?string
+    {
+        if (! $this->db->table_exists('agendamentos')) {
+            return null;
+        }
+
+        $linha = $this->db->select('hora')->where('os_id', $idOs)->limit(1)->get('agendamentos')->row();
+
+        return $linha && $linha->hora !== null ? (string) $linha->hora : null;
+    }
+
     /**
      * Cria a OS e o agendamento juntos (os dois ou nenhum).
      *

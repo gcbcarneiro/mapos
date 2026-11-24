@@ -261,4 +261,40 @@ final class AgendamentosTest extends MaposTestCase
         $this->assertContains('Agendamentos', $rotulos(layoutMenuVisivel(layoutMenu(), $permite(['vAgendamento']), 'Mapos', 'index')));
         $this->assertNotContains('Agendamentos', $rotulos(layoutMenuVisivel(layoutMenu(), $permite([]), 'Mapos', 'index')));
     }
+
+    public function testResumoParaOMotorista(): void
+    {
+        $os = (object) [
+            'idOs' => 24, 'dataInicial' => '2026-11-26', 'dataFinal' => '2026-11-26',
+            'nomeCliente' => 'Condominio Pedro Kassouf', 'contato_cliente' => 'FABIO',
+            'celular_cliente' => '(21) 98051-9671', 'telefone_cliente' => '(21) 98051-9671',
+            'rua' => 'Rua Hildegardo De Noronha', 'numero' => '1205', 'complemento' => '  Portão azul ',
+            'bairro' => 'Alto', 'cidade' => 'Teresópolis', 'estado' => 'RJ', 'cep' => '25961-260', 'nome' => 'Luciene',
+        ];
+
+        $resumo = osResumoMotorista($os, '08:00:00');
+
+        $this->assertSame('0024', $resumo['os']);
+        $this->assertSame('26/11/2026 às 08:00', $resumo['quando']);
+        $this->assertSame('FABIO · (21) 98051-9671', $resumo['contato'], 'Telefone repetido aparece uma vez.');
+        $this->assertSame('Rua Hildegardo De Noronha, 1205, Alto, Teresópolis - RJ · CEP 25961-260', $resumo['endereco']);
+        $this->assertSame('Portão azul', $resumo['referencia']);
+        $this->assertSame('Luciene', $resumo['responsavel']);
+        $this->assertStringStartsWith('https://www.google.com/maps/search/?api=1&query=Rua%20Hildegardo', $resumo['mapa']);
+
+        $qr = osQrCodeDoMapa($resumo['mapa']);
+        $this->assertNotNull($qr);
+        $this->assertStringStartsWith('data:image/svg+xml;base64,', $qr);
+        $this->assertNull(osQrCodeDoMapa(''));
+    }
+
+    public function testResumoSemEnderecoNemHora(): void
+    {
+        $resumo = osResumoMotorista((object) ['idOs' => 7, 'dataInicial' => '2026-11-26', 'dataFinal' => null, 'nomeCliente' => 'Ana']);
+
+        $this->assertSame('26/11/2026', $resumo['quando']);
+        $this->assertSame('', $resumo['endereco']);
+        $this->assertSame('', $resumo['mapa']);
+        $this->assertSame('', $resumo['contato']);
+    }
 }

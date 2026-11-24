@@ -261,6 +261,9 @@ $totalProdutos = 0;
                     <span class="doc-assinatura">Assinatura do técnico</span>
                 </div>
             </footer>
+            <?php if (isset($motorista)) : ?>
+                <?php $this->load->view('os/imprimirOsMotorista') ?>
+            <?php endif; ?>
         </div>
 
         <?php if ($configuration['control_2vias']) : ?>
@@ -516,6 +519,9 @@ $totalProdutos = 0; ?>
                         <span class="doc-assinatura">Assinatura do técnico</span>
                     </div>
                 </footer>
+                <?php if (isset($motorista)) : ?>
+                    <?php $this->load->view('os/imprimirOsMotorista') ?>
+                <?php endif; ?>
             </div>
         <?php endif; ?>
 

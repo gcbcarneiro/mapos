@@ -190,3 +190,72 @@ if (! function_exists('agendamentoAtrasado')) {
             && ! in_array((string) ($linha->status ?? ''), AGENDAMENTO_STATUS_ENCERRADOS, true);
     }
 }
+
+if (! function_exists('osResumoMotorista')) {
+    /**
+     * Quadro "Dados para o motorista" da impressão da OS (fork Conser): só o
+     * que o motorista precisa para chegar e fazer o serviço, em texto puro
+     * (a view escapa com e()). $hora é a do agendamento da OS, se houver.
+     *
+     * @return array{os: string, quando: string, cliente: string, contato: string, endereco: string, referencia: string, responsavel: string, mapa: string}
+     */
+    function osResumoMotorista(object $os, ?string $hora = null): array
+    {
+        $texto = static fn ($valor): string => trim(preg_replace('/\s+/u', ' ', (string) $valor) ?? '');
+        $juntar = static fn (string $separador, array $partes): string => implode($separador, array_values(array_filter(array_map($texto, $partes), static fn ($p) => $p !== '')));
+
+        $data = (string) ($os->dataFinal ?: $os->dataInicial ?? '');
+        $quando = $data !== '' ? dataBr($data) : '';
+        $horaCurta = agendamentoHoraCurta($hora);
+        if ($horaCurta !== '') {
+            $quando .= ($quando !== '' ? ' às ' : '') . $horaCurta;
+        }
+
+        $cidade = $juntar(' - ', [$os->cidade ?? '', $os->estado ?? '']);
+        $endereco = $juntar(', ', [
+            $juntar(', ', [$os->rua ?? '', $os->numero ?? '']),
+            $os->bairro ?? '',
+            $cidade,
+        ]);
+        $cep = $texto($os->cep ?? '');
+
+        $telefones = $juntar(' / ', array_unique(array_filter([
+            $texto($os->celular_cliente ?? $os->celular ?? ''),
+            $texto($os->telefone_cliente ?? $os->telefone ?? ''),
+        ])));
+
+        return [
+            'os' => str_pad((string) $os->idOs, 4, '0', STR_PAD_LEFT),
+            'quando' => $quando,
+            'cliente' => $texto($os->nomeCliente ?? ''),
+            'contato' => $juntar(' · ', [$os->contato_cliente ?? '', $telefones]),
+            'endereco' => $endereco . ($cep !== '' ? ($endereco !== '' ? ' · ' : '') . 'CEP ' . $cep : ''),
+            'referencia' => $texto($os->complemento ?? ''),
+            'responsavel' => $texto($os->nome ?? ''),
+            'mapa' => $endereco !== '' ? 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode($endereco . ($cep !== '' ? ', ' . $cep : '')) : '',
+        ];
+    }
+}
+
+if (! function_exists('osQrCodeDoMapa')) {
+    /** QR Code (data URI SVG) que abre o endereço no mapa do celular; null sem link ou se falhar. */
+    function osQrCodeDoMapa(string $url): ?string
+    {
+        if ($url === '' || ! class_exists(\chillerlan\QRCode\QRCode::class)) {
+            return null;
+        }
+
+        try {
+            $opcoes = new \chillerlan\QRCode\QROptions([
+                'outputType' => \chillerlan\QRCode\QRCode::OUTPUT_MARKUP_SVG,
+                'eccLevel' => \chillerlan\QRCode\QRCode::ECC_M,
+            ]);
+
+            return (new \chillerlan\QRCode\QRCode($opcoes))->render($url);
+        } catch (Throwable $erro) {
+            log_message('error', 'QR Code do mapa da OS: ' . $erro->getMessage());
+
+            return null;
+        }
+    }
+}
